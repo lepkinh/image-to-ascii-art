@@ -23,21 +23,19 @@ def resize_img(img, new_width=100):
 # size 1 50px, size 2 100px, size 3 200px
 def process_image(file, size=2):
     try:
-        file = PIL.Image.open(file)
-        data = np.array(file)
+        # img isconverted grayscaled when loaded, this prevents having to deal with weird img types
+        img = PIL.Image.open(file).convert("L")
+        data = np.array(img)
 
         # resizing the image data to appropriate width
         size_map = {1: 50, 2: 100, 3: 200}
         new_width = size_map.get(size, 100)
         data = resize_img(data, new_width)
 
-        # if not already grayscale, convert to grayscale
-        if len(data.shape) == 3:
-            data = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
-
         return data
     # exception invalid file
-    except Exception:
+    except Exception as e:
+        print(f"Failure in process_image(): {e}")
         return None
 
 
