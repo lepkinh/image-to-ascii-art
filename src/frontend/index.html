@@ -22,8 +22,48 @@
     <br><br>
 
     <h2>Large box to drop or paste or select a file (img) to convert</h2>
+    
+    <div id="dropbox">
+      <p>Drop image here</p>
+      <input type="file" id="imageInput">
+      <br>
+      
+    </div>
+
+    <div>
+      <button onclick="uploadImage(1)">Small</button>
+      <button onclick="uploadImage(2)">Medium</button>
+      <button onclick="uploadImage(3)">Large</button>
+    </div>
+    <textarea id="asciiOutput" readonly></textarea>
 
     <br><br>
 
     <p>Github link<br>Powered by xyz (consider using bearblog, github pages, etc similar services)</p>
 </body>
+
+<script>
+  async function uploadImage(size) {
+      const fileInput = document.getElementById("imageInput");
+      if (!fileInput.files.length) {
+          alert("Please select an image.");
+          return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+      formData.append("size", size);
+
+      const response = await fetch("http://127.0.0.1:5000/upload", {
+          method: "POST",
+          body: formData
+      });
+
+      const data = await response.json();
+      if (data.error) {
+          alert(data.error);
+      } else {
+          document.getElementById("asciiOutput").value = data.ascii;
+      }
+  }
+</script>

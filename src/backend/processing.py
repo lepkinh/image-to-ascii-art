@@ -1,7 +1,6 @@
 """
 The idea of this file is to contain the algorithm that processes images into ascii and returns to server.
 Algorithm idea: image -> image data -> resize image -> grayscale -> map values to ascii -> return
-
 """
 import PIL.Image
 import cv2

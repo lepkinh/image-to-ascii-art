@@ -2,10 +2,20 @@
 Server file, runs using Flask
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from processing import process_image, ascii
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../frontend")
+
+@app.route('/')
+def index():
+    return send_from_directory(app.static_folder, "index.html")
+
+@app.route('/<path:filename>')
+def static_files(filename):
+    return send_from_directory(app.static_folder, filename)
+
 
 @app.route('/upload', methods=['POST'])
 def upload_image():
