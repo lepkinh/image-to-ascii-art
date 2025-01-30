@@ -1,5 +1,5 @@
 """
-Server file, flask or django
+Server file, runs using Flask
 """
 
 from flask import Flask, request, jsonify
@@ -9,6 +9,12 @@ app = Flask(__name__)
 
 @app.route('/upload', methods=['POST'])
 def upload_image():
+    """ 
+    jsonify ascii art of the uploaded image file.
+
+    Returns:
+    json, ascii art of the uploaded image file
+    """
     if 'file' not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
 
@@ -28,6 +34,5 @@ def upload_image():
     return jsonify({"ascii": ascii_art})
 
 
-# run server
 if __name__ == '__main__':
     app.run(debug=True)

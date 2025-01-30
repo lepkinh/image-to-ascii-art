@@ -1,27 +1,41 @@
 """
 The idea of this file is to contain the algorithm that processes images into ascii and returns to server.
-Algorithm concept: image -> image data -> resize image -> grayscale -> map values to ascii -> return
+Algorithm idea: image -> image data -> resize image -> grayscale -> map values to ascii -> return
 
-Note: will have to make this file importable, perhaps create a class structure instead of this plan
-NOTE: consider reording grayscale and resize, figure out what is the otpimal order for gen case
 """
 import PIL.Image
 import cv2
 import numpy as np
 
-# will need a function that accepts the image file in processing.py or server.py
-# notes: should have max and min file sizes and error clauses
 
-# resize an image array
 def resize_img(img, new_width=100):
+    """
+    Resizes img data in an array without adjusting aspect ratio.
+
+    Parameters:
+    img: numpy array, the image data
+    new_width: int, the new width of the image, default is 100 (size 2/medium)
+
+    Returns:
+    numpy array, the resized image data
+    """
     height, width = img.shape
 
     # new height is calculated based on the ratio of the new width to the old width
     return cv2.resize(img, (new_width, int(new_width*height/width)))
 
-# function: converts to numpy array, grayscales, resizes
-# size 1 50px, size 2 100px, size 3 200px
+
 def process_image(file, size=2):
+    """ 
+    Processess img file into a resized, grayscaled numpy array.
+
+    Parameters:
+    file: file, the image file
+    size: int, the size of the ascii image, default is 2 (medium)
+
+    Returns:
+    numpy array, the processed image data
+    """
     try:
         # img isconverted grayscaled when loaded, this prevents having to deal with weird img types
         img = PIL.Image.open(file).convert("L")
@@ -29,8 +43,13 @@ def process_image(file, size=2):
 
         # resizing the image data to appropriate width
         size_map = {1: 50, 2: 100, 3: 200}
-        new_width = size_map.get(size, 100)
-        data = resize_img(data, new_width)
+
+        try:
+            new_width = size_map.get(size, 100)
+            data = resize_img(data, new_width)
+        except Exception as e:
+            print(f"Failure in resize_img(): {e}")
+            return None
 
         return data
     # exception invalid file
@@ -41,6 +60,15 @@ def process_image(file, size=2):
 
 # function: convert pixel values to ascii (API route)
 def ascii(data):
+    """ 
+    Converts img data (numpy array) into ascii art.
+
+    Parameters:
+    data: numpy array, the image data
+
+    Returns:
+    str, the ascii art representation of the image
+    """
     # can change these characters to anything NOTE: play around with these
     ascii_chars = "@%#*+=-:. " 
     ascii_data = []
