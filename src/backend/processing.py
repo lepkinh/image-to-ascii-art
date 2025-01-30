@@ -15,41 +15,39 @@ import numpy as np
 # resize an image array
 def resize_img(img, new_width=100):
     height, width = img.shape
+
     # new height is calculated based on the ratio of the new width to the old width
     return cv2.resize(img, (new_width, int(new_width*height/width)))
 
 # function: converts to numpy array, grayscales, resizes
 # size 1 50px, size 2 100px, size 3 200px
 def process_image(file, size=2):
-    file = PIL.Image.open(file)
-    data = np.array(file)
+    try:
+        file = PIL.Image.open(file)
+        data = np.array(file)
 
-    # resize image to a width of 100px
-    if size == 1:
-        data = resize_img(data, 50)
-    elif size == 2:
-        data = resize_img(data)
-    elif size == 3:
-        data = resize_img(data, 200)
-    else:
-        # raise value error or return error data
-        pass
-    
-    # convert to grayscale
-    if len(data.shape) == 3:
-        data = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
-    
-    return data
+        # resizing the image data to appropriate width
+        size_map = {1: 50, 2: 100, 3: 200}
+        new_width = size_map.get(size, 100)
+        data = resize_img(data, new_width)
+
+        # if not already grayscale, convert to grayscale
+        if len(data.shape) == 3:
+            data = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
+
+        return data
+    # exception invalid file
+    except Exception:
+        return None
 
 
-# function: maps pixel values to ascii
+# function: convert pixel values to ascii (API route)
 def ascii(data):
-    ascii_chars = "@%#*+=-:. " # can change these to whatever really
-    ascii_data = ""
+    # can change these characters to anything NOTE: play around with these
+    ascii_chars = "@%#*+=-:. " 
+    ascii_data = []
     for row in data:
-        for pixel in row:
-            ascii_data += ascii_chars[pixel//32]
-        ascii_data += "\n"
-    return ascii_data
+        ascii_row = "".join(ascii_chars[pixel // 32] for pixel in row)
+        ascii_data.append(ascii_row)
+    return "\n".join(ascii_data)
 
-# function: format the ascii in json
