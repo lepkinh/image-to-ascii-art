@@ -10,60 +10,89 @@
 
 </head>
 
-<body style="text-align: center;">
-    <br><br><br>
-    
-    <h2>Img2Ascii//Title</h2>
+<body>
+  <!-- row of buttons -->
+  <div class="controls">
+    <button id="sizeBtn">Medium</button>
+    <button id="colorBtn" disabled>Monochrome</button>
+    <input type="file" id="imageInput" hidden accept="image/*">
+    <button id="uploadBtn">Upload</button>
+    <button id="saveBtn" disabled>Save</button>
+  </div>
 
-    <br><br>
+  <!-- image drop/ascii display -->
+  <div id="dropbox">
+    <p>Drop image here</p>
+    <pre id="asciiOutput"></pre>
+  </div>
 
-    <p>Format options here</p>
-
-    <br><br>
-
-    <h2>Large box to drop or paste or select a file (img) to convert</h2>
-    
-    <div id="dropbox">
-      <p>Drop image here</p>
-      <input type="file" id="imageInput">
-      <br>
-      
-    </div>
-
-    <div>
-      <button onclick="uploadImage(1)">Small</button>
-      <button onclick="uploadImage(2)">Medium</button>
-      <button onclick="uploadImage(3)">Large</button>
-    </div>
-    <textarea id="asciiOutput" readonly></textarea>
-
-    <br><br>
-
-    <p>Github link<br>Powered by xyz (consider using bearblog, github pages, etc similar services)</p>
+  <!-- footer -->
+  <p class="footer">Github link<br>Powered by XYZ</p>
 </body>
 
 <script>
-  async function uploadImage(size) {
-      const fileInput = document.getElementById("imageInput");
-      if (!fileInput.files.length) {
-          alert("Please select an image.");
-          return;
-      }
+let currentSize = 2; // 1=Small, 2=Medium, 3=Large
+let isColor = false;
 
-      const formData = new FormData();
-      formData.append("file", fileInput.files[0]);
-      formData.append("size", size);
+const sizeBtn = document.getElementById("sizeBtn");
+const colorBtn = document.getElementById("colorBtn");
+const uploadBtn = document.getElementById("uploadBtn");
+const saveBtn = document.getElementById("saveBtn");
+const dropbox = document.getElementById("dropbox");
+const imageInput = document.getElementById("imageInput");
 
-      const response = await fetch("http://127.0.0.1:5000/upload", {
-          method: "POST",
-          body: formData
-      });
+// size toggle
+sizeBtn.addEventListener("click", () => {
+  currentSize = currentSize === 3 ? 1 : currentSize + 1;
+  const sizes = ["Small", "Medium", "Large"];
+  sizeBtn.textContent = sizes[currentSize - 1];
+});
 
-      const data = await response.json();
-      if (data.error) {
-          alert(data.error);
-      } else {
-          document.getElementById("asciiOutput").value = data.ascii;
-      }
+// upload button, triggers hidden file input)
+uploadBtn.addEventListener("click", () => imageInput.click());
+
+// drag and drop
+dropbox.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropbox.classList.add("dragover");
+});
+
+dropbox.addEventListener("dragleave", () => {
+  dropbox.classList.remove("dragover");
+});
+
+dropbox.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dropbox.classList.remove("dragover");
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith("image/")) {
+    handleFile(file);
   }
+});
+
+// file input handler
+imageInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (file) handleFile(file);
+});
+
+async function handleFile(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("size", currentSize);
+
+  try {
+    const response = await fetch("/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    
+    document.getElementById("asciiOutput").textContent = data.ascii;
+    saveBtn.disabled = false;
+  } catch (error) {
+    alert(error.message);
+  }
+}
 </script>

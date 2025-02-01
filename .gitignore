@@ -2,3 +2,4 @@
 .vscode
 /backend/Guh.png // the chosen test case
 __pycache__
+venv
