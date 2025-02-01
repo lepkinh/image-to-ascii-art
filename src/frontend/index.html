@@ -7,7 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Img2Ascii</title>
   <link rel="stylesheet" href="standard.css">
-
 </head>
 
 <body>
@@ -22,7 +21,7 @@
 
   <!-- image drop/ascii display -->
   <div id="dropbox">
-    <p>Drop image here</p>
+    <p id="dropText">Drop image here</p>
     <pre id="asciiOutput"></pre>
   </div>
 
@@ -41,17 +40,67 @@ const saveBtn = document.getElementById("saveBtn");
 const dropbox = document.getElementById("dropbox");
 const imageInput = document.getElementById("imageInput");
 
-// size toggle
+// ======== NEW FUNCTION FOR TEXT SCALING ========
+function scaleAsciiToFit() {
+  const asciiOutput = document.getElementById("asciiOutput");
+  const dropbox = document.getElementById("dropbox");
+  const targetFill = 1.5; // 80% of container
+
+  const asciiLines = asciiOutput.textContent.split("\n");
+  const cols = asciiLines[0]?.length || 0;
+  const rows = asciiLines.length || 0;
+
+  if (cols > 0 && rows > 0) {
+    const charAspect = 0.55; // Match your backend ratio
+    
+    // Calculate available space for ASCII content
+    const containerWidth = dropbox.clientWidth * targetFill;
+    const containerHeight = dropbox.clientHeight * targetFill;
+    
+    // Calculate font size based on character grid
+    const fontSizeWidth = containerWidth / cols;
+    const fontSizeHeight = (containerHeight / rows) * charAspect;
+    
+    // Use smallest viable font size to fill space
+    const fontSize = Math.min(fontSizeWidth, fontSizeHeight);
+    
+    asciiOutput.style.fontSize = `${fontSize}px`;
+  }
+}
+
+// ======== MODIFIED HANDLEFILE FUNCTION ========
+async function handleFile(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("size", currentSize);
+  const dropText = document.getElementById("dropText"); // Get drop text element
+
+  try {
+    const response = await fetch("/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    
+    document.getElementById("asciiOutput").textContent = data.ascii;
+    dropText.style.display = "none"; // Hide drop text
+    scaleAsciiToFit();
+    saveBtn.disabled = false;
+  } catch (error) {
+    dropText.style.display = "block"; // Show drop text on error
+    alert(error.message);
+  }
+}
+// ======== EXISTING EVENT LISTENERS ========
 sizeBtn.addEventListener("click", () => {
   currentSize = currentSize === 3 ? 1 : currentSize + 1;
   const sizes = ["Small", "Medium", "Large"];
   sizeBtn.textContent = sizes[currentSize - 1];
 });
 
-// upload button, triggers hidden file input)
 uploadBtn.addEventListener("click", () => imageInput.click());
 
-// drag and drop
 dropbox.addEventListener("dragover", (e) => {
   e.preventDefault();
   dropbox.classList.add("dragover");
@@ -70,29 +119,9 @@ dropbox.addEventListener("drop", (e) => {
   }
 });
 
-// file input handler
 imageInput.addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (file) handleFile(file);
 });
-
-async function handleFile(file) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("size", currentSize);
-
-  try {
-    const response = await fetch("/upload", {
-      method: "POST",
-      body: formData,
-    });
-    const data = await response.json();
-    if (data.error) throw new Error(data.error);
-    
-    document.getElementById("asciiOutput").textContent = data.ascii;
-    saveBtn.disabled = false;
-  } catch (error) {
-    alert(error.message);
-  }
-}
 </script>
+</html>

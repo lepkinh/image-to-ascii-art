@@ -18,10 +18,18 @@ def resize_img(img, new_width=100):
     Returns:
     numpy array, the resized image data
     """
-    height, width = img.shape
+    # ASCII characters are ~2x taller than wide (adjust this ratio if needed)
+    char_aspect_ratio = 0.55  # Height-to-width ratio of a monospace character
 
-    # new height is calculated based on the ratio of the new width to the old width
-    return cv2.resize(img, (new_width, int(new_width*height/width)))
+    # Calculate target dimensions
+    original_height, original_width = img.shape[:2]
+    aspect_ratio = original_width / original_height
+
+    # Compensate for character aspect ratio
+    new_width_pixels = new_width
+    new_height_pixels = int(new_width_pixels / aspect_ratio * char_aspect_ratio)
+
+    return cv2.resize(img, (new_width_pixels, new_height_pixels))
 
 
 def process_image(file, size=2):
