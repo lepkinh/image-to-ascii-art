@@ -12,6 +12,7 @@
 <body>
   <!-- row of buttons -->
   <div class="controls">
+    <button id="themeBtn">Theme: Retro</button>
     <button id="sizeBtn">Medium</button>
     <button id="colorBtn" disabled>Monochrome</button>
     <input type="file" id="imageInput" hidden accept="image/*">
@@ -21,12 +22,12 @@
 
   <!-- image drop/ascii display -->
   <div id="dropbox">
-    <p id="dropText">Drop image here</p>
+    <p id="dropText">Drop an image</p>
     <pre id="asciiOutput"></pre>
   </div>
 
   <!-- footer -->
-  <p class="footer">Github link<br>Powered by XYZ</p>
+  <p class="footer" style="font-family: monospace; text-align: center;"><a href="https://github.com/lepkinh/image-to-ascii-art" style="text-decoration: underline; color: aqua;" target="_blank">Img2Ascii</a><br>Powered by <a href="https://docs.github.com/en/pages" style="text-decoration: underline; color: aqua;" target="_blank">Github Pages</a> & <a href="https://www.heroku.com/" style="text-decoration: underline; color: aqua;" target="_blank">Heroku</a></p>
 </body>
 
 <script>
@@ -39,6 +40,39 @@ const uploadBtn = document.getElementById("uploadBtn");
 const saveBtn = document.getElementById("saveBtn");
 const dropbox = document.getElementById("dropbox");
 const imageInput = document.getElementById("imageInput");
+
+let currentTheme = 0;
+const themes = [
+  { name: "Retro", vars: {} }, // Default CSS vars
+  { 
+    name: "Minimal", 
+    vars: {
+      'bg-color': '#f0f0f0',
+      'text-color': '#333',
+      'accent-color': '#555',
+      'hover-bg': '#eee'
+    }
+  }
+];
+
+// theme button event listener
+document.getElementById("themeBtn").addEventListener("click", () => {
+  currentTheme = (currentTheme + 1) % themes.length;
+  const theme = themes[currentTheme];
+  
+  // Update CSS variables
+  const root = document.documentElement;
+  if (currentTheme === 0) {
+    root.removeAttribute('style'); // Reset to default
+  } else {
+    Object.entries(theme.vars).forEach(([varName, value]) => {
+      root.style.setProperty(`--${varName}`, value);
+    });
+  }
+  
+  // update button text here
+  document.getElementById("themeBtn").textContent = `Theme: ${theme.name}`;
+});
 
 // text scaling function
 function scaleAsciiToFit() {
@@ -81,7 +115,7 @@ async function handleFile(file) {
     document.getElementById("asciiOutput").textContent = data.ascii;
     dropText.style.display = "none"; // hide drop text
     scaleAsciiToFit();
-    saveBtn.disabled = false;
+    saveBtn.disabled = true; // save button is temporarily disabled, will be re-enabled later
   } catch (error) {
     dropText.style.display = "block"; // show drop text on error
     alert(error.message);

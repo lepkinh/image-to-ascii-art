@@ -1,69 +1,104 @@
+/*
+Likely a majority of "design" will be bootstrap
+*/
+
+:root {
+  /* Retro Theme (Default) */
+  --bg-color: #1a1a1a;
+  --text-color: #ff00ff;
+  --text-color2: #ff00ff;
+  --accent-color: #00ffff;
+  --hover-bg: #4b0082;
+}
+
+/* Plain White Theme */
+[data-theme="plain"] {
+  --bg-color: #f0f0f0;
+  --text-color: #333;
+  --text-color2: #dfd8d8;
+  --accent-color: #555;
+  --hover-bg: #eee;
+}
+
 body {
-    font-family: monospace;
-    margin: 20px;
-    background: #f0f0f0;
-  }
-  
-  .controls {
-    margin: 20px;
-    gap: 10px;
-    display: flex;
-    justify-content: center;
-  }
-  
-  button {
-    padding: 10px 20px;
-    background: #ddd;
-    border: 2px solid #555;
-    cursor: pointer;
-    font-family: monospace;
-  }
-  
-  button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  #dropbox {
-    width: 500px;
-    height: 500px;
-    margin: 20px auto;
-    border: 4px dashed #555;
-    background: white;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  #dropText {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    margin: 0;
-  }
-  
-  #asciiOutput {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    text-align: center;
-    line-height: 1;
-    white-space: pre;
-    font-family: monospace;
-    margin: 0;
-    padding: 10px;
-  }
-  
-  #dropbox:hover, 
-  #dropbox.dragover {
-    background: #eee;
-    border-color: #000;
-  }
-  
-  .footer {
-    margin-top: 40px;
-    color: #666;
-  }
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
+.controls {
+  margin: 20px;
+  gap: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+button {
+  border-color: var(--accent-color);
+  color: var(--text-color);
+  padding: 10px 20px;
+  background: #333;
+  border: 2px solid; 
+  cursor: pointer;
+  font-family: monospace;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+button:hover:not(:disabled) {
+  background: #444;    /* Slightly lighter grey */
+  border-color: #ff00ff; /* Pink border on hover */
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none; /* clicks are prevented until i re-enable colour and save, people can still edit this on the front end but its not a big deal*/
+}
+
+#dropbox {
+  width: 500px;
+  height: 500px;
+  margin: 20px auto;
+  border: 4px dashed;
+  border-color: var(--accent-color);
+  background: var(--bg-color);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s, background 0.3s;
+  font-family: monospace;
+}
+
+#dropText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  margin: 0;
+  color: #ff00ff; /* Pink text */
+}
+
+#asciiOutput {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  text-align: center;
+  line-height: 1;
+  white-space: pre;
+  font-family: monospace;
+  margin: 0;
+  padding: 10px;
+  color: var(--text-color); 
+}
+
+#dropbox:hover, 
+#dropbox.dragover {
+  background: var(--hover-bg);
+  border-color: var(--text-color);
+}
+
+.footer {
+  margin-top: 40px;
+  color: var(--accent-color);
+}
