@@ -1,10 +1,12 @@
 """
 Server file, runs using Flask
 """
-
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, send_file
 from processing import process_image, ascii
+from PIL import Image, ImageDraw, ImageFont
+import io
 import os
+import traceback
 
 app = Flask(__name__, static_folder="../frontend")
 
@@ -53,37 +55,52 @@ def save_ascii():
     file, the image file of the ascii art
     """
     data = request.json
-    ascii_art = data.get('ascii')
-    format = data.get('format', 'png')  # 'png' or 'jpeg'
-
-    if not ascii_art:
+    ascii_art = data.get('ascii', '')
+    
+    if not ascii_art.strip():
         return jsonify({"error": "No ASCII art to save"}), 400
     
     try:
-        # Calculate image dimensions
-        lines = ascii_art.split('\n')
-        font_size = 12  # Base font size
-        font = ImageFont.truetype("Courier_New.ttf", font_size)
+        font_size = 12
+        try:
+            font = ImageFont.truetype("DejaVuSansMono.ttf", font_size)
+        except IOError:
+            try:
+                font = ImageFont.truetype("cour.ttf", font_size)
+            except IOError:
+                font = ImageFont.load_default()
+
+        lines = [line for line in ascii_art.split('\n') if line.strip()]
+        if not lines:
+            return jsonify({"error": "Empty ASCII art"}), 400
+            
+        max_line_length = max(len(line) for line in lines)
         
-        # Estimate character dimensions
-        char_width, char_height = font.getsize("A")
-        img_width = max(len(line) for line in lines) * char_width
+        # Get character dimensions using getbbox
+        test_char = "A"
+        left, top, right, bottom = font.getbbox(test_char)
+        char_width = right - left
+        char_height = bottom - top
+        
+        img_width = max_line_length * char_width
         img_height = len(lines) * char_height
 
-        # Create image
-        img = Image.new('RGB', (img_width, img_height), color=(255, 255, 255))
+        if img_width <= 0 or img_height <= 0:
+            return jsonify({"error": "Invalid ASCII dimensions"}), 400
+
+        img = Image.new('RGB', (img_width, img_height), (255, 255, 255))
         draw = ImageDraw.Draw(img)
         draw.text((0, 0), ascii_art, font=font, fill=(0, 0, 0))
-
-        # Save to bytes buffer
+        
         img_io = io.BytesIO()
-        img.save(img_io, format=format.upper(), quality=95)
+        img.save(img_io, format="PNG")
         img_io.seek(0)
 
-        return send_file(img_io, mimetype=f'image/{format}', as_attachment=True, download_name=f'ascii_art.{format}')
-    
+        return send_file(img_io, mimetype="image/png", as_attachment=True, download_name="ascii_art.png")
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"CRITICAL ERROR: {traceback.format_exc()}")
+        return jsonify({"error": f"Image generation failed: {str(e)}"}), 500
 
 
 if __name__ == '__main__':

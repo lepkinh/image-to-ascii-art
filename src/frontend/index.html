@@ -40,11 +40,11 @@ const saveBtn = document.getElementById("saveBtn");
 const dropbox = document.getElementById("dropbox");
 const imageInput = document.getElementById("imageInput");
 
-// ======== NEW FUNCTION FOR TEXT SCALING ========
+// text scaling function
 function scaleAsciiToFit() {
   const asciiOutput = document.getElementById("asciiOutput");
   const dropbox = document.getElementById("dropbox");
-  const targetFill = 1.5; // 80% of container
+  const targetFill = 1.5; // ratio of container to ASCII content
 
   const asciiLines = asciiOutput.textContent.split("\n");
   const cols = asciiLines[0]?.length || 0;
@@ -68,7 +68,7 @@ function scaleAsciiToFit() {
   }
 }
 
-// ======== MODIFIED HANDLEFILE FUNCTION ========
+// handlefile function
 async function handleFile(file) {
   const formData = new FormData();
   formData.append("file", file);
@@ -92,7 +92,7 @@ async function handleFile(file) {
     alert(error.message);
   }
 }
-// ======== EXISTING EVENT LISTENERS ========
+// existing event listeners
 sizeBtn.addEventListener("click", () => {
   currentSize = currentSize === 3 ? 1 : currentSize + 1;
   const sizes = ["Small", "Medium", "Large"];
@@ -122,6 +122,41 @@ dropbox.addEventListener("drop", (e) => {
 imageInput.addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (file) handleFile(file);
+});
+
+// save functionality
+saveBtn.addEventListener("click", async () => {
+  const asciiArt = document.getElementById("asciiOutput").textContent;
+  
+  try {
+    const response = await fetch("/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ascii: asciiArt }),
+    });
+
+    // response handling
+    if (response.ok) {
+      // Handle image download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "ascii_art.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } else {
+      // Handle JSON error
+      const errorData = await response.json();
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
+
+  } catch (error) {
+    console.error("Save error:", error);
+    alert(`Save failed: ${error.message}`);
+  }
 });
 </script>
 </html>
