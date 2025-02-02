@@ -45,15 +45,15 @@ def upload_image():
     ascii_art = ascii(data)
     return jsonify({"ascii": ascii_art})
 
-
-@app.route('/save', methods=['POST'])
-def save_ascii():
-    """
+"""
     Save ASCII art as an image file.
 
     Returns:
     file, the image file of the ascii art
     """
+@app.route('/save', methods=['POST'])
+@app.route('/save', methods=['POST'])
+def save_ascii():
     data = request.json
     ascii_art = data.get('ascii', '')
     
@@ -61,37 +61,40 @@ def save_ascii():
         return jsonify({"error": "No ASCII art to save"}), 400
     
     try:
+        # font setup
         font_size = 12
         try:
             font = ImageFont.truetype("DejaVuSansMono.ttf", font_size)
         except IOError:
             try:
-                font = ImageFont.truetype("cour.ttf", font_size)
+                font = ImageFont.truetype("cour.ttf", font_size)  # windows
             except IOError:
-                font = ImageFont.load_default()
+                return jsonify({"error": "Monospace font not found"}), 500
 
-        lines = [line for line in ascii_art.split('\n') if line.strip()]
+        # trimmed lines and dimensions
+        lines = [line.rstrip() for line in ascii_art.split('\n')]
         if not lines:
             return jsonify({"error": "Empty ASCII art"}), 400
-            
+        
         max_line_length = max(len(line) for line in lines)
         
-        # Get character dimensions using getbbox
-        test_char = "A"
-        left, top, right, bottom = font.getbbox(test_char)
+        left, top, right, bottom = font.getbbox("A")
         char_width = right - left
-        char_height = bottom - top
-        
+        ascent, descent = font.getmetrics()
+        line_height = ascent + descent
+
         img_width = max_line_length * char_width
-        img_height = len(lines) * char_height
+        img_height = len(lines) * line_height
 
-        if img_width <= 0 or img_height <= 0:
-            return jsonify({"error": "Invalid ASCII dimensions"}), 400
-
+        # draw
         img = Image.new('RGB', (img_width, img_height), (255, 255, 255))
         draw = ImageDraw.Draw(img)
-        draw.text((0, 0), ascii_art, font=font, fill=(0, 0, 0))
         
+        y = 0
+        for line in lines:
+            draw.text((0, y), line, font=font, fill=(0, 0, 0))
+            y += line_height
+
         img_io = io.BytesIO()
         img.save(img_io, format="PNG")
         img_io.seek(0)

@@ -44,26 +44,21 @@ const imageInput = document.getElementById("imageInput");
 function scaleAsciiToFit() {
   const asciiOutput = document.getElementById("asciiOutput");
   const dropbox = document.getElementById("dropbox");
-  const targetFill = 1.5; // ratio of container to ASCII content
+  const targetFill = 1.6; // ratio of container to ASCII content
+  const charAspect = 0.55 //0.55;
 
   const asciiLines = asciiOutput.textContent.split("\n");
   const cols = asciiLines[0]?.length || 0;
   const rows = asciiLines.length || 0;
 
   if (cols > 0 && rows > 0) {
-    const charAspect = 0.55; // Match your backend ratio
-    
-    // Calculate available space for ASCII content
     const containerWidth = dropbox.clientWidth * targetFill;
     const containerHeight = dropbox.clientHeight * targetFill;
     
-    // Calculate font size based on character grid
     const fontSizeWidth = containerWidth / cols;
     const fontSizeHeight = (containerHeight / rows) * charAspect;
     
-    // Use smallest viable font size to fill space
     const fontSize = Math.min(fontSizeWidth, fontSizeHeight);
-    
     asciiOutput.style.fontSize = `${fontSize}px`;
   }
 }
@@ -73,7 +68,7 @@ async function handleFile(file) {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("size", currentSize);
-  const dropText = document.getElementById("dropText"); // Get drop text element
+  const dropText = document.getElementById("dropText"); // get drop text elment
 
   try {
     const response = await fetch("/upload", {
@@ -84,11 +79,11 @@ async function handleFile(file) {
     if (data.error) throw new Error(data.error);
     
     document.getElementById("asciiOutput").textContent = data.ascii;
-    dropText.style.display = "none"; // Hide drop text
+    dropText.style.display = "none"; // hide drop text
     scaleAsciiToFit();
     saveBtn.disabled = false;
   } catch (error) {
-    dropText.style.display = "block"; // Show drop text on error
+    dropText.style.display = "block"; // show drop text on error
     alert(error.message);
   }
 }
@@ -148,7 +143,7 @@ saveBtn.addEventListener("click", async () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } else {
-      // Handle JSON error
+      // handle JSON error
       const errorData = await response.json();
       throw new Error(errorData.error || `HTTP ${response.status}`);
     }
