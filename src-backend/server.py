@@ -2,13 +2,15 @@
 Server file, runs using Flask
 """
 from flask import Flask, request, jsonify, send_from_directory, send_file
-from processing import process_image, ascii
+import sys
+import os
 from PIL import Image, ImageDraw, ImageFont
 import io
-import os
 import traceback
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'backend')))
+from processing import process_image, ascii
 
-app = Flask(__name__, static_folder="../frontend")
+app = Flask(__name__, static_folder=".")
 
 @app.route('/')
 def index():
@@ -17,7 +19,6 @@ def index():
 @app.route('/<path:filename>')
 def static_files(filename):
     return send_from_directory(app.static_folder, filename)
-
 
 @app.route('/upload', methods=['POST'])
 def upload_image():
@@ -45,15 +46,14 @@ def upload_image():
     ascii_art = ascii(data)
     return jsonify({"ascii": ascii_art})
 
-"""
-    Save ASCII art as an image file.
-
-    Returns:
-    file, the image file of the ascii art
-    """
-@app.route('/save', methods=['POST'])
 @app.route('/save', methods=['POST'])
 def save_ascii():
+    """ 
+    save ascii art as an image file.
+
+    Returns:
+    image/png, ascii art as an image file
+    """
     data = request.json
     ascii_art = data.get('ascii', '')
     

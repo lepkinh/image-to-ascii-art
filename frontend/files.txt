@@ -1,0 +1,1 @@
+Frontend files are moved to root directory for hosting on Github Pages
